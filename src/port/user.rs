@@ -1,0 +1,10 @@
+use async_trait::async_trait;
+use mockall::automock;
+
+use crate::domain::user::User;
+
+#[automock]
+#[async_trait]
+pub trait UserPort {
+    async fn get_user(&self, id: i32) -> anyhow::Result<Vec<User>>;
+}
