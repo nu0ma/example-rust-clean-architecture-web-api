@@ -3,10 +3,14 @@ use serde::Deserialize;
 
 use crate::{
     domain::user::User,
-    driver::{self},
+    driver::{self, db_driver::DbDriver},
     gateway::user::UserGateway,
     usecase,
 };
+
+pub struct AppState {
+    pub db_driver: DbDriver,
+}
 
 #[derive(Deserialize)]
 struct Info {
@@ -14,10 +18,10 @@ struct Info {
 }
 
 #[get("/user/{id}")]
-pub async fn get_user(path_params: web::Path<Info>) -> impl Responder {
+pub async fn get_user(path_params: web::Path<Info>, data: web::Data<AppState>) -> impl Responder {
     let response = usecase::user::get_user(
         UserGateway {
-            db_driver: driver::db_driver::DbDriver {},
+            db_driver: data.db_driver,
         },
         path_params.id,
     )
@@ -29,10 +33,10 @@ pub async fn get_user(path_params: web::Path<Info>) -> impl Responder {
 }
 
 #[post("/user")]
-pub async fn create_user(user: web::Json<User>) -> impl Responder {
+pub async fn create_user(user: web::Json<User>, data: web::Data<AppState>) -> impl Responder {
     let response = usecase::user::create_user(
         UserGateway {
-            db_driver: driver::db_driver::DbDriver {},
+            db_driver: data.db_driver,
         },
         user.0,
     )

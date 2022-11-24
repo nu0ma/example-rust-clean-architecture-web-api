@@ -1,7 +1,8 @@
-use actix_web::{App, HttpServer};
+use actix_web::{web, App, HttpServer};
 use example_rust_clean_architecture_web_api::{
     connection_pool,
-    rest::user::{create_user, get_user},
+    driver::{self, db_driver::DbDriver},
+    rest::user::{create_user, get_user, AppState},
 };
 use tracing::Level;
 
@@ -14,8 +15,15 @@ async fn main() -> std::io::Result<()> {
         .set(db_pool)
         .expect("DB Connection Error");
 
-    HttpServer::new(|| App::new().service(get_user).service(create_user))
-        .bind(("0.0.0.0", 8000))?
-        .run()
-        .await
+    HttpServer::new(|| {
+        App::new()
+            .app_data(web::Data::new(AppState {
+                db_driver: driver::db_driver::DbDriver::default(),
+            }))
+            .service(get_user)
+            .service(create_user)
+    })
+    .bind(("0.0.0.0", 8000))?
+    .run()
+    .await
 }

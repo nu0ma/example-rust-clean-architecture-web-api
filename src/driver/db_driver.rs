@@ -10,7 +10,7 @@ pub struct UserModel {
     pub name: String,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct DbDriver {}
 
 #[automock]
