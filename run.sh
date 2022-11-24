@@ -1,4 +1,5 @@
 cargo fmt
+cargo test
 cargo clippy --fix
 
 DB_HOST=localhost \

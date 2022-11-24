@@ -26,6 +26,11 @@ impl<T: DbDriverTrait + Send + Sync> UserPort for UserGateway<T> {
         self.db_driver.create_user(user).await?;
         Ok(())
     }
+
+    async fn update_user(&self, id: i32, name: String) -> anyhow::Result<()> {
+        self.db_driver.update_user(id, name).await?;
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -100,6 +105,27 @@ mod test {
         };
 
         let actual = user_gateway.create_user(user).await.unwrap();
+        assert_eq!(expected, actual)
+    }
+
+    #[tokio::test]
+    async fn test_update_user() {
+        let id = 1;
+        let name = "new_name".to_string();
+
+        let expected = Ok(()).unwrap();
+        let mut mock_db_driver = MockDbDriverTrait::default();
+
+        mock_db_driver
+            .expect_update_user()
+            .with(predicate::eq(id), predicate::eq(name.clone()))
+            .returning(|_, _| Ok(()));
+
+        let user_gateway = UserGateway {
+            db_driver: mock_db_driver,
+        };
+
+        let actual = user_gateway.update_user(id, name).await.unwrap();
         assert_eq!(expected, actual)
     }
 }

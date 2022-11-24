@@ -18,6 +18,7 @@ pub struct DbDriver {}
 pub trait DbDriverTrait {
     async fn get_user(&self, id: i32) -> anyhow::Result<Vec<UserModel>>;
     async fn create_user(&self, user: User) -> anyhow::Result<()>;
+    async fn update_user(&self, id: i32, name: String) -> anyhow::Result<()>;
 }
 
 #[async_trait]
@@ -37,6 +38,17 @@ impl DbDriverTrait for DbDriver {
         sqlx::query(sql)
             .bind(user.id)
             .bind(user.name)
+            .execute(DB_POOL.get().expect("DB Connection Error"))
+            .await?;
+        Ok(())
+    }
+
+    async fn update_user(&self, id: i32, name: String) -> anyhow::Result<()> {
+        let sql = "UPDATE USERS SET name = $1 where id = $2";
+
+        sqlx::query(sql)
+            .bind(name)
+            .bind(id)
             .execute(DB_POOL.get().expect("DB Connection Error"))
             .await?;
         Ok(())

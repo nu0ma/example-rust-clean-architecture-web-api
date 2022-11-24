@@ -1,3 +1,4 @@
+use actix_web::Responder;
 use anyhow::Ok;
 
 use crate::{domain::user::User, port::user::UserPort};
@@ -9,6 +10,11 @@ pub async fn get_user(user_port: impl UserPort, id: i32) -> anyhow::Result<Vec<U
 
 pub async fn create_user(user_port: impl UserPort, user: User) -> anyhow::Result<()> {
     Ok(user_port.create_user(user).await?)
+}
+
+pub async fn update_user(user_port: impl UserPort, id: i32, name: String) -> anyhow::Result<()> {
+    user_port.update_user(id, name).await?;
+    Ok(())
 }
 
 #[cfg(test)]
@@ -53,5 +59,26 @@ mod test {
 
         let actual = usecase::user::create_user(user_port, user).await.unwrap();
         assert_eq!(expected, actual)
+    }
+
+    #[tokio::test]
+    async fn test_update_user() {
+        let id = 1;
+        let new_name = "new_name".to_string();
+
+        let expected = Ok(()).unwrap();
+
+        let mut user_port = MockUserPort::default();
+
+        user_port
+            .expect_update_user()
+            .with(predicate::eq(id), predicate::eq(new_name.clone()))
+            .times(1)
+            .returning(|_, _| Ok(()));
+
+        let actual = usecase::user::update_user(user_port, id, new_name)
+            .await
+            .unwrap();
+        assert_eq!(actual, expected)
     }
 }

@@ -1,4 +1,8 @@
-use actix_web::{get, post, web, HttpResponse, Responder};
+use actix_web::{
+    get, post, put,
+    web::{self, Json},
+    HttpResponse, Responder,
+};
 use serde::Deserialize;
 
 use crate::{
@@ -26,6 +30,7 @@ pub async fn get_user(path_params: web::Path<Info>, data: web::Data<AppState>) -
         path_params.id,
     )
     .await;
+
     match response {
         Ok(res) => HttpResponse::Ok().json(res),
         Err(_) => HttpResponse::InternalServerError().finish(),
@@ -42,6 +47,31 @@ pub async fn create_user(user: web::Json<User>, data: web::Data<AppState>) -> im
     )
     .await;
 
+    match response {
+        Ok(()) => HttpResponse::Ok().finish(),
+        Err(_) => HttpResponse::InternalServerError().finish(),
+    }
+}
+
+#[derive(Deserialize)]
+struct UpdateUserParam {
+    name: String,
+}
+
+#[put("/user/{id}")]
+pub async fn update_user(
+    id: web::Path<Info>,
+    name: Json<UpdateUserParam>,
+    data: web::Data<AppState>,
+) -> impl Responder {
+    let response = usecase::user::update_user(
+        UserGateway {
+            db_driver: data.db_driver,
+        },
+        id.id,
+        name.name.clone(),
+    )
+    .await;
     match response {
         Ok(()) => HttpResponse::Ok().finish(),
         Err(_) => HttpResponse::InternalServerError().finish(),
