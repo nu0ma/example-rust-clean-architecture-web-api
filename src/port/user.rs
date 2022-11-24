@@ -7,4 +7,5 @@ use crate::domain::user::User;
 #[async_trait]
 pub trait UserPort {
     async fn get_user(&self, id: i32) -> anyhow::Result<Vec<User>>;
+    async fn create_user(&self, user: User) -> anyhow::Result<()>;
 }

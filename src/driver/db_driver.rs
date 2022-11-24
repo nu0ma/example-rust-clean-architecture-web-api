@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use mockall::automock;
 use sqlx::FromRow;
 
-use crate::connection_pool::DB_POOL;
+use crate::{connection_pool::DB_POOL, domain::user::User};
 
 #[derive(FromRow)]
 pub struct UserModel {
@@ -17,6 +17,7 @@ pub struct DbDriver {}
 #[async_trait]
 pub trait DbDriverTrait {
     async fn get_user(&self, id: i32) -> anyhow::Result<Vec<UserModel>>;
+    async fn create_user(&self, user: User) -> anyhow::Result<()>;
 }
 
 #[async_trait]
@@ -28,5 +29,16 @@ impl DbDriverTrait for DbDriver {
             .await?;
 
         Ok(row)
+    }
+
+    async fn create_user(&self, user: User) -> anyhow::Result<()> {
+        let sql = "INSERT INTO USERS (id, name) VALUES ($1, $2)";
+
+        sqlx::query(sql)
+            .bind(user.id)
+            .bind(user.name)
+            .execute(DB_POOL.get().expect("DB Connection Error"))
+            .await?;
+        Ok(())
     }
 }
