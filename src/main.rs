@@ -2,7 +2,7 @@ use actix_web::{web, App, HttpServer};
 use example_rust_clean_architecture_web_api::{
     connection_pool,
     driver::{self},
-    rest::user::{create_user, get_user, update_user, AppState},
+    rest::user::{create_user, delete_user, get_user, update_user, AppState},
 };
 use tracing::Level;
 
@@ -23,6 +23,7 @@ async fn main() -> std::io::Result<()> {
             .service(get_user)
             .service(create_user)
             .service(update_user)
+            .service(delete_user)
     })
     .bind(("0.0.0.0", 8000))?
     .run()

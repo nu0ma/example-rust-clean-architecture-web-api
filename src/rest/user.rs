@@ -1,5 +1,5 @@
 use actix_web::{
-    get, post, put,
+    delete, get, post, put,
     web::{self, Json},
     HttpResponse, Responder,
 };
@@ -72,6 +72,30 @@ pub async fn update_user(
         name.name.clone(),
     )
     .await;
+    match response {
+        Ok(()) => HttpResponse::Ok().finish(),
+        Err(_) => HttpResponse::InternalServerError().finish(),
+    }
+}
+
+#[derive(Deserialize)]
+struct DeleteUserPathParam {
+    id: i32,
+}
+
+#[delete("/user/{id}")]
+pub async fn delete_user(
+    param: web::Path<DeleteUserPathParam>,
+    data: web::Data<AppState>,
+) -> impl Responder {
+    let response = usecase::user::delete_user(
+        UserGateway {
+            db_driver: data.db_driver,
+        },
+        param.id,
+    )
+    .await;
+
     match response {
         Ok(()) => HttpResponse::Ok().finish(),
         Err(_) => HttpResponse::InternalServerError().finish(),

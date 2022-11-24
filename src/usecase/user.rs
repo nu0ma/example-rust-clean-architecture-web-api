@@ -17,6 +17,11 @@ pub async fn update_user(user_port: impl UserPort, id: i32, name: String) -> any
     Ok(())
 }
 
+pub async fn delete_user(user_port: impl UserPort, id: i32) -> anyhow::Result<()> {
+    user_port.delete_user(id).await?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod test {
     use crate::{domain::user::User, port::user::MockUserPort, usecase};
@@ -80,5 +85,21 @@ mod test {
             .await
             .unwrap();
         assert_eq!(actual, expected)
+    }
+
+    #[tokio::test]
+    async fn test_delete_user() {
+        let id = 1;
+        let expected = Ok(()).unwrap();
+        let mut user_port = MockUserPort::default();
+
+        user_port
+            .expect_delete_user()
+            .with(predicate::eq(id))
+            .times(1)
+            .returning(|_| Ok(()));
+
+        let actual = usecase::user::delete_user(user_port, id).await.unwrap();
+        assert_eq!(expected, actual)
     }
 }

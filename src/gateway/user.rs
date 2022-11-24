@@ -31,10 +31,17 @@ impl<T: DbDriverTrait + Send + Sync> UserPort for UserGateway<T> {
         self.db_driver.update_user(id, name).await?;
         Ok(())
     }
+
+    async fn delete_user(&self, id: i32) -> anyhow::Result<()> {
+        self.db_driver.delete_user(id).await?;
+        Ok(())
+    }
 }
 
 #[cfg(test)]
 mod test {
+    use std::process::id;
+
     use crate::{
         domain::user::User,
         driver::db_driver::{MockDbDriverTrait, UserModel},
@@ -126,6 +133,26 @@ mod test {
         };
 
         let actual = user_gateway.update_user(id, name).await.unwrap();
+        assert_eq!(expected, actual)
+    }
+
+    #[tokio::test]
+    async fn test_delete_user() {
+        let id = 1;
+
+        let mut mock_db_driver = MockDbDriverTrait::default();
+        mock_db_driver
+            .expect_delete_user()
+            .with(predicate::eq(id))
+            .times(1)
+            .returning(|_| Ok(()));
+
+        let user_gateway = UserGateway {
+            db_driver: mock_db_driver,
+        };
+
+        let expected = Ok(()).unwrap();
+        let actual = user_gateway.delete_user(id).await.unwrap();
         assert_eq!(expected, actual)
     }
 }
